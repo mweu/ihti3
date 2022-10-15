@@ -203,6 +203,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     studentsData =  await generateProductList(context);
     bankBalances = await generateBankBalances(context);
     feeBalances = await generateFeeBalances(context);
+    semesters =   await generateSemestersForTranscripts(context);
 
 
     Navigator.push(

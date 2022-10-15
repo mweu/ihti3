@@ -21,6 +21,8 @@ Table studentsData = Table();
 Table bankBalances = Table();
 
 Table feeBalances = Table();
+
+Table semesters = Table();
 void main() {
   runApp(const MainScreenUi());
 }
@@ -34,7 +36,7 @@ class MainScreenUi extends StatelessWidget {
  /* getStudentsData(context);*/
   return MaterialApp(
       home: DefaultTabController(
-        length: 3,
+        length: 4,
         child: Scaffold(
           appBar: AppBar(
             bottom: const TabBar(
@@ -72,7 +74,12 @@ class MainScreenUi extends StatelessWidget {
                         SingleChildScrollView(
                             scrollDirection: Axis.vertical,
                             child: feeBalances)])),
-              Icon(Icons.transcribe_rounded),
+              Scrollbar(
+                  child: ListView(
+                      children: <Widget>[
+                        SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: semesters)]))
             ],
           ),
         ),
@@ -92,6 +99,79 @@ void getStudentsData(BuildContext context) async {
 void getBankDetailsData(BuildContext context) async {
   bankBalances =  await generateBankBalances(context);
 
+}
+
+Future<Table>  generateSemestersForTranscripts(BuildContext context) async {
+  print("Reading Student Semesters");
+  var client = https.Client();
+  try {
+    final response = await client.get
+      (Uri.parse(
+        'https://mansoftonline.com/schooladmin/core/college/getSchoolSemesters/c4778e95-eca4-4646-ab2c-3b839dceb045'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          "Access-Control-Allow-Origin": "*",
+          'Accept': '*/*',
+          'AuthorizationKey': CollegeManConstatnts.session.getSessionKey(),
+        });
+    print("Response Received-->");
+    print(response.body);
+    final body = json.decode(response.body);
+    final responseObject = body['response'];
+    var list = responseObject['data'];
+
+
+
+    print("Generating School Semester");
+    List<dynamic> schoolSemesters = list
+        .map((data) => SemestersBean.fromJson(data))
+        .toList();
+    schoolSemesters.insert(0, new SemestersBean(mansoftltdCode: "Code", mansoftltdDescription: "Name"));
+
+    for (var sem in schoolSemesters) {
+      var semesterCode = sem.mansoftltdDescription.toString();
+      print(semesterCode);
+    }
+    print("School Semesters");
+    var i = 0;
+    Table table =   Table(
+        border: TableBorder.symmetric(
+            inside: BorderSide(width: 1, color: Colors.blue),
+            outside: BorderSide(width: 1)),
+        defaultColumnWidth: FixedColumnWidth(150),
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+
+        children: [
+
+          for (var sem in schoolSemesters) TableRow(children: [
+            TableCell(
+              verticalAlignment: TableCellVerticalAlignment.middle,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  new Text(sem.mansoftltdCode.toString(),
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, height: 3)),
+                  new Text(sem.mansoftltdDescription.toString()),
+                 ],
+              ),
+            )
+          ],
+              decoration: BoxDecoration(color: Colors.grey[200]))
+  ]
+    );
+    print("Table School Semesters was created Successfully!!");
+    return table;
+
+  } on Exception catch (error) {
+    print("An error occured during Semesters Creattion!");
+    print(error);
+
+    rethrow;
+  }
+
+  finally {
+    client.close();
+  }
 }
 
 Future<Table>  generateFeeBalances(BuildContext context) async {
@@ -358,6 +438,27 @@ class FeeBalancesBean {
     'paid': paid,
     'semester': semester,
     'currency': currency,
+  };
+}
+
+class SemestersBean {
+
+  SemestersBean({
+    this.mansoftltdCode = 'Code',
+    this.mansoftltdDescription = 'Name'
+  });
+
+  var mansoftltdCode;
+  var mansoftltdDescription;
+
+  factory SemestersBean.fromJson(Map<String, dynamic> json) => SemestersBean(
+    mansoftltdCode: json['mansoftltdCode'],
+    mansoftltdDescription: json['mansoftltdDescription'],
+  );
+
+  Map<String, dynamic> toJson() => {
+    'mansoftltdCode': mansoftltdCode,
+    'mansoftltdDescription': mansoftltdDescription
   };
 }
 
