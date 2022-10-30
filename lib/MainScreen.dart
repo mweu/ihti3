@@ -15,6 +15,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Table studentsData = Table();
 
@@ -22,7 +23,52 @@ Table bankBalances = Table();
 
 Table feeBalances = Table();
 
-Table semesters = Table();
+DataTable semesters = DataTable(
+  columns: const <DataColumn>[
+    DataColumn(
+      label: Expanded(
+        child: Text(
+          'Semester Code',
+          style: TextStyle(fontStyle: FontStyle.italic),
+        ),
+      ),
+    ),
+    DataColumn(
+      label: Expanded(
+        child: Text(
+          'Semester Name',
+          style: TextStyle(fontStyle: FontStyle.italic),
+        ),
+      ),
+    ),
+    DataColumn(
+      label: Expanded(
+        child: Text(
+          'Role',
+          style: TextStyle(fontStyle: FontStyle.italic),
+        ),
+      ),
+    ),
+  ],
+  rows: const <DataRow>[
+    DataRow(
+      cells: <DataCell>[
+        DataCell(Text('Test Row')),
+        DataCell(Text('19')),
+        DataCell(Text('Student')),
+      ],
+    ),
+
+    DataRow(
+      cells: <DataCell>[
+        DataCell(Text('Test Row')),
+        DataCell(Text('27')),
+        DataCell(Text('Associate Professor')),
+      ],
+    ),
+  ],
+);
+
 void main() {
   runApp(const MainScreenUi());
 }
@@ -101,7 +147,7 @@ void getBankDetailsData(BuildContext context) async {
 
 }
 
-Future<Table>  generateSemestersForTranscripts(BuildContext context) async {
+Future<DataTable>  generateSemestersForTranscripts(BuildContext context) async {
   print("Reading Student Semesters");
   var client = https.Client();
   try {
@@ -126,7 +172,7 @@ Future<Table>  generateSemestersForTranscripts(BuildContext context) async {
     List<dynamic> schoolSemesters = list
         .map((data) => SemestersBean.fromJson(data))
         .toList();
-    schoolSemesters.insert(0, new SemestersBean(mansoftltdCode: "Code", mansoftltdDescription: "Name"));
+   // schoolSemesters.insert(0, new SemestersBean(mansoftltdCode: "Code", mansoftltdDescription: "Name", mansoftltdIndex: "Index"));
 
     for (var sem in schoolSemesters) {
       var semesterCode = sem.mansoftltdDescription.toString();
@@ -134,32 +180,47 @@ Future<Table>  generateSemestersForTranscripts(BuildContext context) async {
     }
     print("School Semesters");
     var i = 0;
-    Table table =   Table(
-        border: TableBorder.symmetric(
-            inside: BorderSide(width: 1, color: Colors.blue),
-            outside: BorderSide(width: 1)),
-        defaultColumnWidth: FixedColumnWidth(150),
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-
-        children: [
-
-          for (var sem in schoolSemesters) TableRow(children: [
-            TableCell(
-              verticalAlignment: TableCellVerticalAlignment.middle,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: <Widget>[
-                  new Text(sem.mansoftltdCode.toString(),
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, height: 3)),
-                  new Text(sem.mansoftltdDescription.toString()),
-                 ],
+    DataTable table =   DataTable(
+        columns: const <DataColumn>[
+        DataColumn(
+          label: Expanded(
+            child: Text(
+              'Semester Code',
+              style: TextStyle(fontStyle: FontStyle.italic),
+            ),
+          ),
+        ),
+          DataColumn(
+            label: Expanded(
+              child: Text(
+                'Semester Name',
+                style: TextStyle(fontStyle: FontStyle.italic),
               ),
-            )
-          ],
-              decoration: BoxDecoration(color: Colors.grey[200]))
-  ]
+            ),
+          ),
+        ],
+
+        rows: [
+
+          for (var sem in schoolSemesters) DataRow(cells: [
+
+            DataCell(
+                Text(sem.mansoftltdCode.toString())
+            ),
+            DataCell(Text(sem.mansoftltdDescription.toString())),
+          ], onSelectChanged: (bool? selected) {
+
+            print(sem.mansoftltdIndex.toString());
+
+            String url = 'https://mansoftonline.com/schooladmin/core/schoolReports/getStudentTranscriptsemesters/c4778e95-eca4-4646-ab2c-3b839dceb045/' + sem.mansoftltdIndex.toString() +"/null";
+            _launchURL(url);
+          },),
+
+       ]
     );
     print("Table School Semesters was created Successfully!!");
+
+
     return table;
 
   } on Exception catch (error) {
@@ -173,6 +234,16 @@ Future<Table>  generateSemestersForTranscripts(BuildContext context) async {
     client.close();
   }
 }
+
+_launchURL(String url) async {
+
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    throw 'Could not launch $url';
+  }
+}
+
 
 Future<Table>  generateFeeBalances(BuildContext context) async {
   var client = https.Client();
@@ -445,20 +516,26 @@ class SemestersBean {
 
   SemestersBean({
     this.mansoftltdCode = 'Code',
-    this.mansoftltdDescription = 'Name'
+    this.mansoftltdDescription = 'Name',
+    this.mansoftltdIndex ='Index'
+
   });
 
   var mansoftltdCode;
   var mansoftltdDescription;
+  var mansoftltdIndex;
+
 
   factory SemestersBean.fromJson(Map<String, dynamic> json) => SemestersBean(
     mansoftltdCode: json['mansoftltdCode'],
     mansoftltdDescription: json['mansoftltdDescription'],
+    mansoftltdIndex: json['mansoftltdIndex'],
   );
 
   Map<String, dynamic> toJson() => {
     'mansoftltdCode': mansoftltdCode,
-    'mansoftltdDescription': mansoftltdDescription
+    'mansoftltdDescription': mansoftltdDescription,
+    'mansoftltdIndex': mansoftltdIndex
   };
 }
 
