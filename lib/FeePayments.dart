@@ -1,11 +1,6 @@
-import 'dart:collection';
-
-import 'package:bensonone/LoginResponse.dart';
 import 'package:bensonone/MainScreen.dart';
 import 'package:bensonone/StaticVariables.dart';
-import 'package:bensonone/Students.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 void main() {
@@ -192,8 +187,8 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   }
 
   void getStudentsData(BuildContext context) async {
-    studentsData =  await generateProductList(context);
-    bankBalances = await generateBankBalances(context);
+   /* studentsData =  await generateProductList(context);
+    bankBalances = await generateBankBalances(context);*/
 
     Navigator.push(
       context,

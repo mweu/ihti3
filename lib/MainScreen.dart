@@ -1,29 +1,20 @@
-import 'package:bensonone/FeePayments.dart';
-import 'package:bensonone/LoginResponse.dart';
-import 'package:bensonone/MainScreen.dart';
 import 'package:bensonone/StaticVariables.dart';
 import 'package:flutter/material.dart';
-import 'package:json_table/json_table.dart';
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as https;
 
 import 'package:intl/intl.dart';
 
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-Table studentsData = Table();
+Table studentsDataset = Table();
 
-Table bankBalances = Table();
+Table bankBalancesDataset = Table();
 
-Table feeBalances = Table();
+Table feeBalancesDataset = Table();
 
-DataTable semesters = DataTable(
+DataTable semestersDataset = DataTable(
   columns: const <DataColumn>[
     DataColumn(
       label: Expanded(
@@ -106,26 +97,26 @@ class MainScreenUi extends StatelessWidget {
               children: <Widget>[
               SingleChildScrollView(
               scrollDirection: Axis.vertical,
-              child: studentsData)])),
+              child: studentsDataset)])),
 
               Scrollbar(
                   child: ListView(
                       children: <Widget>[
                         SingleChildScrollView(
                             scrollDirection: Axis.vertical,
-                            child: bankBalances)])),
+                            child: bankBalancesDataset)])),
               Scrollbar(
                   child: ListView(
                       children: <Widget>[
                         SingleChildScrollView(
                             scrollDirection: Axis.vertical,
-                            child: feeBalances)])),
+                            child: feeBalancesDataset)])),
               Scrollbar(
                   child: ListView(
                       children: <Widget>[
                         SingleChildScrollView(
                             scrollDirection: Axis.vertical,
-                            child: semesters)]))
+                            child: semestersDataset)]))
             ],
           ),
         ),
@@ -137,13 +128,13 @@ class MainScreenUi extends StatelessWidget {
 }
 
 void getStudentsData(BuildContext context) async {
-  studentsData =  await generateProductList(context);
+  studentsDataset =  await generateProductList(context);
 
 
 }
 
 void getBankDetailsData(BuildContext context) async {
-  bankBalances =  await generateBankBalances(context);
+  bankBalancesDataset =  await generateBankBalances(context);
 
 }
 

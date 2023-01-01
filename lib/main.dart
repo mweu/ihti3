@@ -1,9 +1,5 @@
-import 'dart:collection';
-
-import 'package:bensonone/LoginResponse.dart';
-import 'package:bensonone/MainScreen.dart';
+import 'package:bensonone/HomeScreen.dart';
 import 'package:bensonone/StaticVariables.dart';
-import 'package:bensonone/Students.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -37,7 +33,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home:  Scaffold(
-    appBar: AppBar(title: const Text("COLLEGE MAN")),
+    appBar: AppBar(title: const Text("COLLEGEMAN")),
     body: const MyStatefulWidget(),
     ),
     );
@@ -138,6 +134,9 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
 
                         final dataObject = responseObject['data'];
 
+                        final userPropObj = dataObject['userProp'];
+                        final display = userPropObj['userDisplayName'];
+
 
                         final companyId = dataObject['companyId'];
                         final userId = dataObject['userId'];
@@ -147,12 +146,24 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                         CollegeManConstatnts.session.setTenantId(companyId);
 
                         CollegeManConstatnts.session.setUserId(userId);
+                        CollegeManConstatnts.session.setDisplanyName(display);
 
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text("Successful Login"),
                         ));
 
-                        getStudentsData(context);
+                        final injectSessionResponse = await client.get
+                          (Uri.parse(
+                            'https://mansoftonline.com/manplanservice/core/manplan/addUserSession/'
+                                    + userId + '/' + display + '/' + sessionKey + '/' + companyId +'/' + userName),
+                            headers: <String, String>{
+                              'Content-Type': 'application/json; charset=UTF-8',
+                              "Access-Control-Allow-Origin": "*",
+                              'Accept': '*/*'
+                            });
+                        loginToPayroll(userName, password);
+                         getStudentsData(context);
+
 
 
 
@@ -200,16 +211,49 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   }
 
   void getStudentsData(BuildContext context) async {
-    studentsData =  await generateProductList(context);
+   /* studentsData =  await generateProductList(context);
     bankBalances = await generateBankBalances(context);
     feeBalances = await generateFeeBalances(context);
-    semesters =   await generateSemestersForTranscripts(context);
+    semesters =   await generateSemestersForTranscripts(context);*/
 
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const MainScreenUi()),
+     /* MaterialPageRoute(builder: (context) => const MainScreenUi()),*/
+      MaterialPageRoute(builder: (context) => const MainscreenUiHome()),
     );
 
+  }
+
+  Future<void> loginToPayroll(String upn, String password) async {
+    print(upn + " " + password);
+    var client = new http.Client();
+   /* final msg = jsonEncode( {
+      "userName": upn,
+      "password": password
+    });*/
+   // https://mansoftonline.com/payroll/ws/auth/authtst/mansoft@ihti.net/P0werm@n
+    final response = await client.get
+      (Uri.parse(
+        'https://mansoftonline.com/payroll/ws/auth/authtst/' + upn +"/" + password),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          "Access-Control-Allow-Origin": "*",
+          'Accept': '*/*'
+        },);
+
+    final body = json.decode(response.body);
+    print(body);
+    final responseObject = body['response'];
+
+    final dataObject = responseObject['data'];
+
+
+    final sessionKey = dataObject['key'];
+
+    CollegeManConstatnts.session.setPayrollSession(sessionKey);
+
+    print("Payroll Login was successfull");
+    print(sessionKey);
   }
 }
